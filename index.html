@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -191,4 +190,84 @@
                 const enemy = enemies[i];
                 if (enemy.x < playerX + playerWidth / 2 && enemy.x + enemy.width > playerX - playerWidth / 2 &&
                     enemy.y + enemy.height > canvas.height - playerHeight) {
-                    enemies
+                    enemies.splice(i, 1);
+                    lives--;
+                    livesEl.textContent = lives;
+                    if (lives <= 0) {
+                        gameOver();
+                    }
+                    break;
+                }
+            }
+        }
+
+        // Отрисовка
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Игрок (котик) - используем изображение, fallback на прямоугольник
+            if (catImg.complete) {
+                ctx.drawImage(catImg, playerX - playerWidth / 2, canvas.height - playerHeight, playerWidth, playerHeight);
+            } else {
+                ctx.fillStyle = '#ff69b4'; // Розовый fallback
+                ctx.fillRect(playerX - playerWidth / 2, canvas.height - playerHeight, playerWidth, playerHeight);
+            }
+
+            // Пули (лазеры)
+            ctx.fillStyle = '#ffff00';
+            bullets.forEach(bullet => {
+                ctx.fillRect(bullet.x - bullet.width / 2, bullet.y, bullet.width, bullet.height);
+            });
+
+            // Враги (мыши) - используем изображение, fallback на прямоугольник
+            if (mouseImg.complete) {
+                enemies.forEach(enemy => {
+                    ctx.drawImage(mouseImg, enemy.x, enemy.y, enemy.width, enemy.height);
+                });
+            } else {
+                ctx.fillStyle = '#8B4513'; // Коричневый fallback
+                enemies.forEach(enemy => {
+                    ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+                });
+            }
+        }
+
+        // Game Over
+        function gameOver() {
+            gameRunning = false;
+            finalScoreEl.textContent = score;
+            gameOverEl.style.display = 'block';
+        }
+
+        // Перезапуск
+        function restartGame() {
+            gameRunning = true;
+            score = 0;
+            lives = 3;
+            playerX = canvas.width / 2;
+            bullets = [];
+            enemies = [];
+            scoreEl.textContent = score;
+            livesEl.textContent = lives;
+            gameOverEl.style.display = 'none';
+        }
+
+        // Игровой цикл
+        function gameLoop() {
+            if (gameRunning) {
+                updatePlayer();
+                if (Math.random() < 0.02) shoot(); // Авто-стрельба
+                if (Math.random() < 0.01) spawnEnemy(); // Спавн мышей
+                updateBullets();
+                updateEnemies();
+                checkCollisions();
+            }
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Старт
+        gameLoop();
+    </script>
+</body>
+</html>
