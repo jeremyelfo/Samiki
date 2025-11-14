@@ -81,38 +81,38 @@
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+            // Пересчёт начальной позиции котика при ресайзе
+            playerX = canvas.width / 2;
         }
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
         // Загрузка изображений (загрузи cat.png 360x360 и fish.png 640x640 в репозиторий)
         const catImg = new Image();
-        catImg.src = 'cat.png'; // Котик (масштабируется до 40x30)
+        catImg.src = 'cat.png'; // Котик (масштабируется до 160x120)
         const fishImg = new Image();
-        fishImg.src = 'fish.png'; // Рыбка (масштабируется до 30x20)
+        fishImg.src = 'fish.png'; // Рыбка (масштабируется до 120x80)
 
         // Игровые переменные
         let gameRunning = true;
         let score = 0;
         let lives = 3;
         let playerX = canvas.width / 2;
-        const playerWidth = 40;  // Котик больше рыбки
-        const playerHeight = 30;
-        const enemyWidth = 30;
-        const enemyHeight = 20;
+        const playerWidth = 160;  // Увеличено в 4 раза (было 40)
+        const playerHeight = 120; // Увеличено в 4 раза (было 30)
+        const enemyWidth = 120;   // Увеличено в 4 раза (было 30)
+        const enemyHeight = 80;   // Увеличено в 4 раза (было 20)
 
         // Массивы для сердечек и рыбок
         let hearts = [];  // Сердечки вместо пуль
         let enemies = [];
 
-        // Управление касанием
-        let touchStartX = 0;
-        let currentTouchX = 0;
+        // Управление касанием (улучшено: котик следует напрямую за пальцем)
+        let currentTouchX = canvas.width / 2;
 
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            touchStartX = e.touches[0].clientX;
-            currentTouchX = touchStartX;
+            currentTouchX = e.touches[0].clientX;
         });
 
         canvas.addEventListener('touchmove', (e) => {
@@ -120,22 +120,21 @@
             currentTouchX = e.touches[0].clientX;
         });
 
-        // Функция обновления позиции котика
+        // Функция обновления позиции котика (мгновенное следование за пальцем)
         function updatePlayer() {
-            const deltaX = currentTouchX - touchStartX;
-            playerX += deltaX / 3; // Быстрое движение
-            touchStartX = currentTouchX;
+            // Прямо устанавливаем позицию под пальцем (очень отзывчиво)
+            playerX = currentTouchX;
 
-            // Границы экрана
+            // Границы экрана (с учётом увеличенного размера)
             playerX = Math.max(playerWidth / 2, Math.min(canvas.width - playerWidth / 2, playerX));
         }
 
-        // Создание сердечка
+        // Создание сердечка (увеличен размер для пропорции)
         function shootHeart() {
             hearts.push({
                 x: playerX,
                 y: canvas.height - playerHeight - 10,
-                size: 15,  // Размер сердечка
+                size: 20,  // Увеличен размер сердечка (было 15)
                 speed: 7
             });
         }
@@ -167,7 +166,7 @@
             enemies = enemies.filter(enemy => {
                 enemy.y += enemy.speed;
                 enemy.x += enemy.vx;
-                // Отскок от границ экрана для замысловатого движения
+                // Отскок от границ экрана (с учётом увеличенного размера)
                 if (enemy.x <= 0 || enemy.x + enemy.width >= canvas.width) {
                     enemy.vx = -enemy.vx;
                 }
@@ -175,7 +174,7 @@
             });
         }
 
-        // Проверка коллизий
+        // Проверка коллизий (адаптировано под новые размеры)
         function checkCollisions() {
             // Сердечки с рыбками
             for (let i = hearts.length - 1; i >= 0; i--) {
@@ -200,7 +199,7 @@
                 }
             }
 
-            // Рыбки с котиком
+            // Рыбки с котиком (адаптировано под новые размеры)
             for (let i = enemies.length - 1; i >= 0; i--) {
                 const enemy = enemies[i];
                 if (enemy.x < playerX + playerWidth / 2 && enemy.x + enemy.width > playerX - playerWidth / 2 &&
@@ -220,7 +219,7 @@
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Котик (масштабируется под экран)
+            // Котик (масштабируется под экран, увеличенный размер)
             if (catImg.complete) {
                 ctx.drawImage(catImg, playerX - playerWidth / 2, canvas.height - playerHeight, playerWidth, playerHeight);
             } else {
@@ -228,8 +227,8 @@
                 ctx.fillRect(playerX - playerWidth / 2, canvas.height - playerHeight, playerWidth, playerHeight);
             }
 
-            // Сердечки (❤️ с помощью текста)
-            ctx.font = '15px Arial';  // Размер под размер сердечка
+            // Сердечки (❤️ с помощью текста, увеличенный размер)
+            ctx.font = '20px Arial';  // Увеличен размер (было 15px)
             ctx.fillStyle = '#ff1493';  // Розовый цвет
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -239,7 +238,7 @@
             ctx.textAlign = 'start';  // Сброс
             ctx.textBaseline = 'alphabetic';
 
-            // Рыбки (масштабируются под экран)
+            // Рыбки (масштабируются под экран, увеличенный размер)
             if (fishImg.complete) {
                 enemies.forEach(enemy => {
                     ctx.drawImage(fishImg, enemy.x, enemy.y, enemy.width, enemy.height);
