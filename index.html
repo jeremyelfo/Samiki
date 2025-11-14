@@ -1,9 +1,10 @@
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Космическая Битва</title>
+    <title>Котик против Мышей</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
@@ -40,6 +41,18 @@
             display: none;
             z-index: 20;
         }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #45a049;
+        }
     </style>
 </head>
 <body>
@@ -73,6 +86,12 @@
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
+        // Загрузка изображений (загрузи cat.png и mouse.png в репозиторий)
+        const catImg = new Image();
+        catImg.src = 'cat.png'; // Изображение котика (размер ~40x30 px)
+        const mouseImg = new Image();
+        mouseImg.src = 'mouse.png'; // Изображение мыши (размер ~30x20 px)
+
         // Игровые переменные
         let gameRunning = true;
         let score = 0;
@@ -80,13 +99,13 @@
         let playerX = canvas.width / 2;
         const playerWidth = 40;
         const playerHeight = 30;
-        const playerSpeed = 5;
+        const playerSpeed = 5; // Не используется напрямую, но для справки
 
         // Массивы для пуль и врагов
         let bullets = [];
         let enemies = [];
 
-        // Управление касанием
+        // Управление касанием (ускорено: делитель с /10 на /3)
         let touchStartX = 0;
         let currentTouchX = 0;
 
@@ -101,10 +120,10 @@
             currentTouchX = e.touches[0].clientX;
         });
 
-        // Функция обновления позиции игрока
+        // Функция обновления позиции игрока (быстрее)
         function updatePlayer() {
             const deltaX = currentTouchX - touchStartX;
-            playerX += deltaX / 10; // Плавное движение
+            playerX += deltaX / 3; // Ускорено: было /10, теперь /3 для лучшей отзывчивости
             touchStartX = currentTouchX; // Сброс для следующего кадра
 
             // Границы экрана
@@ -122,7 +141,7 @@
             });
         }
 
-        // Создание врага
+        // Создание врага (мыши)
         function spawnEnemy() {
             enemies.push({
                 x: Math.random() * (canvas.width - 30),
@@ -141,7 +160,7 @@
             });
         }
 
-        // Обновление врагов
+        // Обновление врагов (мышей)
         function updateEnemies() {
             enemies = enemies.filter(enemy => {
                 enemy.y += enemy.speed;
@@ -172,74 +191,4 @@
                 const enemy = enemies[i];
                 if (enemy.x < playerX + playerWidth / 2 && enemy.x + enemy.width > playerX - playerWidth / 2 &&
                     enemy.y + enemy.height > canvas.height - playerHeight) {
-                    enemies.splice(i, 1);
-                    lives--;
-                    livesEl.textContent = lives;
-                    if (lives <= 0) {
-                        gameOver();
-                    }
-                    break;
-                }
-            }
-        }
-
-        // Отрисовка
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Игрок (космолет)
-            ctx.fillStyle = '#00ff00';
-            ctx.fillRect(playerX - playerWidth / 2, canvas.height - playerHeight, playerWidth, playerHeight);
-
-            // Пули
-            ctx.fillStyle = '#ffff00';
-            bullets.forEach(bullet => {
-                ctx.fillRect(bullet.x - bullet.width / 2, bullet.y, bullet.width, bullet.height);
-            });
-
-            // Враги (корабли)
-            ctx.fillStyle = '#ff0000';
-            enemies.forEach(enemy => {
-                ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
-            });
-        }
-
-        // Game Over
-        function gameOver() {
-            gameRunning = false;
-            finalScoreEl.textContent = score;
-            gameOverEl.style.display = 'block';
-        }
-
-        // Перезапуск
-        function restartGame() {
-            gameRunning = true;
-            score = 0;
-            lives = 3;
-            playerX = canvas.width / 2;
-            bullets = [];
-            enemies = [];
-            scoreEl.textContent = score;
-            livesEl.textContent = lives;
-            gameOverEl.style.display = 'none';
-        }
-
-        // Игровой цикл
-        function gameLoop() {
-            if (gameRunning) {
-                updatePlayer();
-                if (Math.random() < 0.02) shoot(); // Авто-стрельба
-                if (Math.random() < 0.01) spawnEnemy(); // Спавн врагов
-                updateBullets();
-                updateEnemies();
-                checkCollisions();
-            }
-            draw();
-            requestAnimationFrame(gameLoop);
-        }
-
-        // Старт
-        gameLoop();
-    </script>
-</body>
-</html>
+                    enemies
