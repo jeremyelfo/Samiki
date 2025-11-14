@@ -59,6 +59,8 @@
             color: yellow;
             font-size: 14px;
             z-index: 10;
+            max-width: 90%;
+            word-wrap: break-word;
         }
     </style>
 </head>
@@ -100,7 +102,6 @@
             canvas.height = window.innerHeight;
             playerX = canvas.width / 2;
             debugEl.textContent += ' | Ресайз OK';
-            // Тестовый рисунок сразу после ресайза
             drawTest();
         }
         resizeCanvas();
@@ -119,7 +120,7 @@
         let hearts = [];
         let enemies = [];
 
-        // Управление касанием
+        // Управление касанием/мышкой
         let currentTouchX = canvas.width / 2;
 
         canvas.addEventListener('touchstart', (e) => {
@@ -133,7 +134,6 @@
             currentTouchX = e.touches[0].clientX;
         });
 
-        // Для мыши (тест)
         canvas.addEventListener('mousemove', (e) => {
             currentTouchX = e.clientX;
         });
@@ -150,10 +150,12 @@
                 size: 20,
                 speed: 7
             });
-            debugEl.textContent += ' | Сердечко!'; // Debug стрельбы
+            // Debug только для теста (убери потом)
+            if (hearts.length % 10 === 0) debugEl.textContent += ' | Сердечко!';
         }
 
-        const fishEmojis = ['🐟', '🐠', '🐡', '🦈', '🐬', '🐙'];
+        // Только рыбки-эмодзи (без акул/осьминогов)
+        const fishEmojis = ['🐟', '🐠', '🐡'];
 
         function spawnEnemy() {
             const startX = Math.random() * (canvas.width - enemyWidth);
@@ -168,7 +170,8 @@
                 vx: vx,
                 emoji: randomEmoji
             });
-            debugEl.textContent += ' | Рыбка спавн!'; // Debug спавна
+            // Debug только для теста
+            if (enemies.length % 5 === 0) debugEl.textContent += ' | Рыбка спавн!';
         }
 
         function updateHearts() {
@@ -226,24 +229,22 @@
             }
         }
 
-        // Тестовый рисунок (статический котик и текст)
+        // Тестовый рисунок (чтобы сразу увидеть canvas)
         function drawTest() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            // Статический котик-эмодзи в центре снизу
+            // Статический котик-эмодзи
             ctx.font = '120px Arial';
             ctx.fillStyle = '#ff69b4';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText('🐱', canvas.width / 2, canvas.height - 60);
-            ctx.textAlign = 'start';
-            ctx.textBaseline = 'alphabetic';
-            ctx.font = '16px Arial';
-            // Текст "ТЕСТ" в центре
+            // Текст теста
             ctx.fillStyle = 'white';
             ctx.font = '30px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('ДВИГАЙ ПАЛЬЦЕМ / МЫШКОЙ!', canvas.width / 2, canvas.height / 2);
+            ctx.fillText('ДВИГАЙ ПАЛЬЦЕМ / МЫШКОЙ! ЖДИ РЫБОК ❤️', canvas.width / 2, canvas.height / 2);
             ctx.textAlign = 'start';
+            ctx.textBaseline = 'alphabetic';
             ctx.font = '16px Arial';
             debugEl.textContent += ' | Тест нарисован';
         }
@@ -251,7 +252,7 @@
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Котик (теперь эмодзи, без cat.png)
+            // Котик (эмодзи)
             ctx.font = '120px Arial';
             ctx.fillStyle = '#ff69b4';
             ctx.textAlign = 'center';
@@ -272,7 +273,7 @@
             ctx.textAlign = 'start';
             ctx.textBaseline = 'alphabetic';
 
-            // Рыбки (эмодзи)
+            // Рыбки (эмодзи 🐟 🐠 🐡, рандомные)
             ctx.font = '80px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -306,23 +307,23 @@
         function gameLoop() {
             if (gameRunning) {
                 updatePlayer();
-                if (Math.random() < 0.1) shootHeart(); // Ещё чаще для теста
-                if (Math.random() < 0.02) spawnEnemy(); // Чуть чаще спавн
+                if (Math.random() < 0.1) shootHeart(); // Часто для теста
+                if (Math.random() < 0.03) spawnEnemy(); // Чаще спавн
                 updateHearts();
                 updateEnemies();
                 checkCollisions();
             }
-            draw(); // Теперь основной draw без теста
+            draw();
             requestAnimationFrame(gameLoop);
         }
 
         // Старт
         window.addEventListener('load', () => {
-            drawTest(); // Сначала тест, чтобы сразу увидеть что-то
+            drawTest(); // Тест сразу
             debugEl.textContent += ' | Игра запущена';
             setTimeout(() => {
-                gameLoop(); // Запуск основного цикла через 1 сек, чтобы тест мигнул
-            }, 1000);
+                gameLoop(); // Основной цикл через 2 сек
+            }, 2000);
         });
     </script>
 </body>
