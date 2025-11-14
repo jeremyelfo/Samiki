@@ -67,8 +67,14 @@
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand(); // Полный экран в Telegram
+        // Проверка Telegram, чтобы не падал скрипт вне TG
+        let tg;
+        try {
+            tg = window.Telegram.WebApp;
+            tg.expand(); // Полный экран в Telegram
+        } catch (e) {
+            console.log('Не в Telegram, игра работает без расширения');
+        }
 
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -87,17 +93,17 @@
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
-        // Загрузка изображения котика (оставляем cat.png)
+        // Загрузка изображения котика (оставляем cat.png, побольше)
         const catImg = new Image();
-        catImg.src = 'cat.png'; // Котик (масштабируется до 200x150 — побольше)
+        catImg.src = 'cat.png'; // Котик (масштабируется до 200x150)
 
         // Игровые переменные
         let gameRunning = true;
         let score = 0;
         let lives = 3;
         let playerX = canvas.width / 2;
-        const playerWidth = 200;  // Сделали побольше (было 160)
-        const playerHeight = 150; // Сделали побольше (было 120)
+        const playerWidth = 200;  // Побольше (было 160)
+        const playerHeight = 150; // Побольше (было 120)
         const enemyWidth = 120;   // Размер для эмодзи рыбок
         const enemyHeight = 80;
 
@@ -140,7 +146,7 @@
         // Список эмодзи рыбок (только рыбки, без акул и осьминогов)
         const fishEmojis = ['🐟', '🐠', '🐡'];
 
-        // Создание рыбки с замысловатым движением и рандомным эмодзи
+        // Создание рыбки с замысловатым движением
         function spawnEnemy() {
             const startX = Math.random() * (canvas.width - enemyWidth);
             const vx = (Math.random() - 0.5) * 4;  // Случайная горизонтальная скорость для зигзага
@@ -241,7 +247,7 @@
             ctx.textAlign = 'start';  // Сброс
             ctx.textBaseline = 'alphabetic';
 
-            // Рыбки (эмодзи вместо PNG, рандомные)
+            // Рыбки (эмодзи вместо PNG)
             ctx.font = '80px Arial';  // Размер шрифта под enemyHeight
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
