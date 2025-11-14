@@ -73,14 +73,14 @@
         <div>Очки: <span id="finalScore">0</span></div>
         <button onclick="restartGame()">Играть заново</button>
     </div>
-    <div id="debug">Загрузка...</div> <!-- Для отладки -->
+    <div id="debug">Загрузка...</div>
 
     <script>
         // Проверка Telegram WebApp
         let tg;
         if (window.Telegram && window.Telegram.WebApp) {
             tg = window.Telegram.WebApp;
-            tg.expand(); // Только если в Telegram
+            tg.expand();
             document.getElementById('debug').textContent = 'Telegram: OK';
         } else {
             document.getElementById('debug').textContent = 'Не в Telegram (но игра работает)';
@@ -100,15 +100,11 @@
             canvas.height = window.innerHeight;
             playerX = canvas.width / 2;
             debugEl.textContent += ' | Ресайз OK';
+            // Тестовый рисунок сразу после ресайза
+            drawTest();
         }
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
-
-        // Загрузка изображения котика
-        const catImg = new Image();
-        catImg.src = 'cat.png'; // Если нет — fallback
-        catImg.onload = () => { debugEl.textContent += ' | Котик загружен'; };
-        catImg.onerror = () => { debugEl.textContent += ' | Ошибка: cat.png не найден'; };
 
         // Игровые переменные
         let gameRunning = true;
@@ -129,6 +125,7 @@
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
             currentTouchX = e.touches[0].clientX;
+            debugEl.textContent += ' | Touch start';
         });
 
         canvas.addEventListener('touchmove', (e) => {
@@ -136,7 +133,7 @@
             currentTouchX = e.touches[0].clientX;
         });
 
-        // Для мыши (тест вне мобильного)
+        // Для мыши (тест)
         canvas.addEventListener('mousemove', (e) => {
             currentTouchX = e.clientX;
         });
@@ -153,6 +150,7 @@
                 size: 20,
                 speed: 7
             });
+            debugEl.textContent += ' | Сердечко!'; // Debug стрельбы
         }
 
         const fishEmojis = ['🐟', '🐠', '🐡', '🦈', '🐬', '🐙'];
@@ -170,6 +168,7 @@
                 vx: vx,
                 emoji: randomEmoji
             });
+            debugEl.textContent += ' | Рыбка спавн!'; // Debug спавна
         }
 
         function updateHearts() {
@@ -227,16 +226,40 @@
             }
         }
 
+        // Тестовый рисунок (статический котик и текст)
+        function drawTest() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Статический котик-эмодзи в центре снизу
+            ctx.font = '120px Arial';
+            ctx.fillStyle = '#ff69b4';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🐱', canvas.width / 2, canvas.height - 60);
+            ctx.textAlign = 'start';
+            ctx.textBaseline = 'alphabetic';
+            ctx.font = '16px Arial';
+            // Текст "ТЕСТ" в центре
+            ctx.fillStyle = 'white';
+            ctx.font = '30px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('ДВИГАЙ ПАЛЬЦЕМ / МЫШКОЙ!', canvas.width / 2, canvas.height / 2);
+            ctx.textAlign = 'start';
+            ctx.font = '16px Arial';
+            debugEl.textContent += ' | Тест нарисован';
+        }
+
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Котик
-            if (catImg.complete && catImg.naturalWidth > 0) {
-                ctx.drawImage(catImg, playerX - playerWidth / 2, canvas.height - playerHeight, playerWidth, playerHeight);
-            } else {
-                ctx.fillStyle = '#ff69b4';
-                ctx.fillRect(playerX - playerWidth / 2, canvas.height - playerHeight, playerWidth, playerHeight);
-            }
+            // Котик (теперь эмодзи, без cat.png)
+            ctx.font = '120px Arial';
+            ctx.fillStyle = '#ff69b4';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🐱', playerX, canvas.height - playerHeight / 2);
+            ctx.textAlign = 'start';
+            ctx.textBaseline = 'alphabetic';
+            ctx.font = '16px Arial';
 
             // Сердечки
             ctx.font = '20px Arial';
@@ -277,25 +300,29 @@
             scoreEl.textContent = score;
             livesEl.textContent = lives;
             gameOverEl.style.display = 'none';
+            debugEl.textContent = 'Перезапуск OK';
         }
 
         function gameLoop() {
             if (gameRunning) {
                 updatePlayer();
-                if (Math.random() < 0.05) shootHeart();
-                if (Math.random() < 0.01) spawnEnemy();
+                if (Math.random() < 0.1) shootHeart(); // Ещё чаще для теста
+                if (Math.random() < 0.02) spawnEnemy(); // Чуть чаще спавн
                 updateHearts();
                 updateEnemies();
                 checkCollisions();
             }
-            draw();
+            draw(); // Теперь основной draw без теста
             requestAnimationFrame(gameLoop);
         }
 
-        // Старт после загрузки
+        // Старт
         window.addEventListener('load', () => {
+            drawTest(); // Сначала тест, чтобы сразу увидеть что-то
             debugEl.textContent += ' | Игра запущена';
-            gameLoop();
+            setTimeout(() => {
+                gameLoop(); // Запуск основного цикла через 1 сек, чтобы тест мигнул
+            }, 1000);
         });
     </script>
 </body>
