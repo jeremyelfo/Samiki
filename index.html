@@ -37,7 +37,7 @@
             color: white;
             font-size: 30px;
             text-align: center;
-            display: none;
+            display: none; /* Строго скрыто на старте */
             z-index: 20;
         }
         button {
@@ -67,11 +67,12 @@
     </div>
 
     <script>
-        // Проверка Telegram, чтобы не падал скрипт вне TG
+        // Фикс: try-catch для Telegram, чтобы не крашился в браузере
         let tg;
         try {
             tg = window.Telegram.WebApp;
             tg.expand(); // Полный экран в Telegram
+            console.log('Telegram: OK');
         } catch (e) {
             console.log('Не в Telegram, игра работает без расширения');
         }
@@ -87,31 +88,30 @@
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            // Пересчёт начальной позиции котика при ресайзе
             playerX = canvas.width / 2;
         }
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
-        // Загрузка изображения котика (оставляем cat.png, побольше)
+        // Загрузка изображения котика (побольше)
         const catImg = new Image();
-        catImg.src = 'cat.png'; // Котик (масштабируется до 200x150)
+        catImg.src = 'cat.png'; // Масштабируется до 200x150
+        catImg.onload = () => console.log('cat.png загружен');
 
         // Игровые переменные
         let gameRunning = true;
         let score = 0;
         let lives = 3;
         let playerX = canvas.width / 2;
-        const playerWidth = 200;  // Побольше (было 160)
-        const playerHeight = 150; // Побольше (было 120)
-        const enemyWidth = 120;   // Размер для эмодзи рыбок
+        const playerWidth = 200;  // Побольше
+        const playerHeight = 150;
+        const enemyWidth = 120;
         const enemyHeight = 80;
 
-        // Массивы для сердечек и рыбок
-        let hearts = [];  // Сердечки вместо пуль
+        let hearts = [];
         let enemies = [];
 
-        // Управление касанием (улучшено: котик следует напрямую за пальцем)
+        // Управление (пальцем + мышь для теста)
         let currentTouchX = canvas.width / 2;
 
         canvas.addEventListener('touchstart', (e) => {
@@ -124,32 +124,30 @@
             currentTouchX = e.touches[0].clientX;
         });
 
-        // Функция обновления позиции котика (мгновенное следование за пальцем)
-        function updatePlayer() {
-            // Прямо устанавливаем позицию под пальцем (очень отзывчиво)
-            playerX = currentTouchX;
+        canvas.addEventListener('mousemove', (e) => {
+            currentTouchX = e.clientX; // Для теста в браузере
+        });
 
-            // Границы экрана (с учётом увеличенного размера)
+        function updatePlayer() {
+            playerX = currentTouchX;
             playerX = Math.max(playerWidth / 2, Math.min(canvas.width - playerWidth / 2, playerX));
         }
 
-        // Создание сердечка (увеличен размер для пропорции)
         function shootHeart() {
             hearts.push({
                 x: playerX,
                 y: canvas.height - playerHeight - 10,
-                size: 20,  // Увеличен размер сердечка (было 15)
+                size: 20,
                 speed: 7
             });
+            console.log('Сердечко выстрелено'); // Debug
         }
 
-        // Список эмодзи рыбок (только рыбки, без акул и осьминогов)
-        const fishEmojis = ['🐟', '🐠', '🐡'];
+        const fishEmojis = ['🐟', '🐠', '🐡']; // Только рыбки
 
-        // Создание рыбки с замысловатым движением
         function spawnEnemy() {
             const startX = Math.random() * (canvas.width - enemyWidth);
-            const vx = (Math.random() - 0.5) * 4;  // Случайная горизонтальная скорость для зигзага
+            const vx = (Math.random() - 0.5) * 4;
             const randomEmoji = fishEmojis[Math.floor(Math.random() * fishEmojis.length)];
             enemies.push({
                 x: startX,
@@ -158,11 +156,11 @@
                 height: enemyHeight,
                 speed: 2 + Math.random() * 2,
                 vx: vx,
-                emoji: randomEmoji  // Эмодзи для отрисовки
+                emoji: randomEmoji
             });
+            console.log('Рыбка спавнена:', randomEmoji); // Debug
         }
 
-        // Обновление сердечек
         function updateHearts() {
             hearts = hearts.filter(heart => {
                 heart.y -= heart.speed;
@@ -170,12 +168,10 @@
             });
         }
 
-        // Обновление рыбок (с горизонтальным зигзагом и отскоком от краёв)
         function updateEnemies() {
             enemies = enemies.filter(enemy => {
                 enemy.y += enemy.speed;
                 enemy.x += enemy.vx;
-                // Отскок от границ экрана (с учётом увеличенного размера)
                 if (enemy.x <= 0 || enemy.x + enemy.width >= canvas.width) {
                     enemy.vx = -enemy.vx;
                 }
@@ -183,14 +179,11 @@
             });
         }
 
-        // Проверка коллизий (адаптировано под новые размеры)
         function checkCollisions() {
-            // Сердечки с рыбками
             for (let i = hearts.length - 1; i >= 0; i--) {
                 const heart = hearts[i];
                 for (let j = enemies.length - 1; j >= 0; j--) {
                     const enemy = enemies[j];
-                    // Простая проверка коллизии (круг для сердечка, прямоугольник для рыбки)
                     const heartLeft = heart.x - heart.size / 2;
                     const heartRight = heart.x + heart.size / 2;
                     const heartTop = heart.y - heart.size / 2;
@@ -203,12 +196,12 @@
                         enemies.splice(j, 1);
                         score += 5;
                         scoreEl.textContent = score;
+                        console.log('Попадание! Очки:', score);
                         break;
                     }
                 }
             }
 
-            // Рыбки с котиком (адаптировано под новые размеры)
             for (let i = enemies.length - 1; i >= 0; i--) {
                 const enemy = enemies[i];
                 if (enemy.x < playerX + playerWidth / 2 && enemy.x + enemy.width > playerX - playerWidth / 2 &&
@@ -216,6 +209,7 @@
                     enemies.splice(i, 1);
                     lives--;
                     livesEl.textContent = lives;
+                    console.log('Удар! Жизни:', lives);
                     if (lives <= 0) {
                         gameOver();
                     }
@@ -224,49 +218,47 @@
             }
         }
 
-        // Отрисовка
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Котик (масштабируется под экран, увеличенный размер)
-            if (catImg.complete) {
+            // Котик (PNG или fallback)
+            if (catImg.complete && catImg.naturalWidth > 0) {
                 ctx.drawImage(catImg, playerX - playerWidth / 2, canvas.height - playerHeight, playerWidth, playerHeight);
             } else {
-                ctx.fillStyle = '#ff69b4'; // Fallback розовый
+                ctx.fillStyle = '#ff69b4';
                 ctx.fillRect(playerX - playerWidth / 2, canvas.height - playerHeight, playerWidth, playerHeight);
             }
 
-            // Сердечки (❤️ с помощью текста, увеличенный размер)
-            ctx.font = '20px Arial';  // Увеличен размер (было 15px)
-            ctx.fillStyle = '#ff1493';  // Розовый цвет
+            // Сердечки
+            ctx.font = '20px Arial';
+            ctx.fillStyle = '#ff1493';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             hearts.forEach(heart => {
                 ctx.fillText('❤️', heart.x, heart.y);
             });
-            ctx.textAlign = 'start';  // Сброс
+            ctx.textAlign = 'start';
             ctx.textBaseline = 'alphabetic';
 
-            // Рыбки (эмодзи вместо PNG)
-            ctx.font = '80px Arial';  // Размер шрифта под enemyHeight
+            // Рыбки (эмодзи)
+            ctx.font = '80px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             enemies.forEach(enemy => {
                 ctx.fillText(enemy.emoji, enemy.x + enemy.width / 2, enemy.y + enemy.height / 2);
             });
-            ctx.textAlign = 'start';  // Сброс
+            ctx.textAlign = 'start';
             ctx.textBaseline = 'alphabetic';
-            ctx.font = '16px Arial';  // Сброс шрифта
+            ctx.font = '16px Arial';
         }
 
-        // Game Over
         function gameOver() {
             gameRunning = false;
             finalScoreEl.textContent = score;
             gameOverEl.style.display = 'block';
+            console.log('Game Over! Финальные очки:', score);
         }
 
-        // Перезапуск
         function restartGame() {
             gameRunning = true;
             score = 0;
@@ -277,14 +269,14 @@
             scoreEl.textContent = score;
             livesEl.textContent = lives;
             gameOverEl.style.display = 'none';
+            console.log('Перезапуск');
         }
 
-        // Игровой цикл
         function gameLoop() {
             if (gameRunning) {
                 updatePlayer();
-                if (Math.random() < 0.02) shootHeart(); // Авто-стрельба сердечками
-                if (Math.random() < 0.01) spawnEnemy(); // Спавн рыбок
+                if (Math.random() < 0.05) shootHeart(); // Чаще для динамики
+                if (Math.random() < 0.02) spawnEnemy(); // Чаще спавн
                 updateHearts();
                 updateEnemies();
                 checkCollisions();
@@ -294,6 +286,7 @@
         }
 
         // Старт
+        console.log('Game started');
         gameLoop();
     </script>
 </body>
